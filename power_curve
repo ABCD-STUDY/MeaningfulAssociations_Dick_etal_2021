@@ -1,0 +1,47 @@
+ 
+####R Code####
+library(grid)
+library(ggplot2)
+library(ggplotify)
+library(pwr)
+ 
+# range of correlations
+r <- seq(.03,.1,.001)
+nr <- length(r)
+ 
+# power values
+#p <- seq(.8,.999,.15)
+p <- c(.80, .90, .99)
+np <- length(p)
+ 
+# obtain sample sizes
+samsize <- array(numeric(nr*np), dim=c(nr,np))
+for (i in 1:np){
+  for (j in 1:nr){
+    result <- pwr.r.test(n = NULL, r = r[j],
+    sig.level = .05, power = p[i],
+    alternative = "two.sided")
+    samsize[j,i] <- ceiling(result$n)
+  }
+}
+ 
+# set up graph
+xrange <- range(r)
+yrange <- c(0,round(max(samsize)))
+colors <- rainbow(length(p))
+
+plot(xrange, yrange, type="n",
+  xlab="Correlation Coefficient |r|",
+  ylab="Sample Size (n)", cex.main=3.5, cex.lab=1.5, cex.axis=1.25)
+# add power curves
+for (i in 1:np){
+  lines(r, samsize[,i], type="l", lwd=2, col=colors[i])
+}
+# add annotation (grid lines, title, legend)
+abline(h=11880, lty=2, lwd = 2, col="black")
+abline(h=0, v=seq(xrange[1],xrange[2],.01), lty=2,
+   col="grey89")
+title("Power as a Function of Sample Size for Pearson Correlation |r|")
+legend("topright", title="Power", as.character(p),
+   fill=colors)
+ 
