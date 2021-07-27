@@ -1,0 +1,132 @@
+require(ggplot2)
+
+COV1means = read.csv("cov1means.csv", header=TRUE)
+
+COV1means <- subset(COV1means, NUM<7 | NUM>7)
+
+#############
+### THEME ###
+#############
+
+# setting theme for all figures
+theme_CBCL <- function(base_size = 22, base_family = ""){
+  theme_bw(base_size = base_size, base_family = base_family) 
+  theme(axis.text.x = element_text(size = 12, color = "black"),
+        axis.text.y = element_text(size = 12, color = "black"),
+        axis.title.x = element_text(size = 12, color = "black"),
+        axis.title.y = element_text(size = 12, color = "black"),
+        axis.ticks = element_blank(),
+        legend.background = element_rect(fill = "transparent"),
+        legend.text = element_text(size = 12, color = "black"),
+        legend.title = element_text(size = 12, color = "black"),
+        title = element_text(size = 12, color = "black"))
+}
+
+##########################
+### CBCL Externalizing ###
+##########################
+
+# CBCL Externalizing
+CBCLext <- COV1means[which(COV1means$EXTCRIT=='cbcl_scr_syn_external_r'), ]
+
+# ALC only 
+CBCLext_ALC <- CBCLext[which(CBCLext$HxVar=='ALC' | CBCLext$HxVar=='ALC.cov2'), ]
+
+CBCLext_ALC$HxVar <- factor(CBCLext_ALC$HxVar, 
+                            levels=c("ALC", "ALC.cov2"), 
+                            labels=c("Tier 1 covariates", "Tier 2 covariates"))
+
+CBCLextALC_plot <- ggplot(data=CBCLext_ALC, aes(x=HxLevel, y=lsmean, group=HxVar, color=HxVar))+
+  geom_point(size=3, alpha=1.0, position=position_dodge(.2))+
+  geom_line(size=1.6, alpha=1.0, position=position_dodge(.2), aes(linetype=HxVar))+
+  geom_errorbar(aes(x=HxLevel, ymin=lsmean-SE, ymax=lsmean+SE,group=HxVar, color=HxVar),
+                position=position_dodge(.2), size=.6, width=0)+
+  theme_bw()+
+  scale_x_discrete(limits = c(0, 1, 2, 3), 
+                   labels = c("Neither parent", "Father only", "Mother only", "Both parents"))+
+  scale_y_continuous(limits = c(2,10), 
+                     breaks = seq(2, 10, by=2))+
+  scale_linetype_manual(name="Covariates", values=c("solid", "dotted"))+
+  theme(legend.position = c(.075, .90),
+        axis.title=element_blank(), 
+        axis.text.x = element_text(size = 12, color = "black"),
+        axis.text.y = element_text(size = 12, color = "black"),
+        axis.ticks = element_blank(),
+        legend.background = element_rect(fill = "transparent"),
+        legend.text = element_text(size = 8, color = "black"),
+        legend.title = element_text(size = 8, color = "black"),
+        title = element_text(size = 12, color = "black"))+
+  scale_color_manual(name="Covariates", values=c("#262626", "#B9336B"))+
+  labs(title = "(a) Parental History of Alcohol Problems with Tier 1 and 2 covariates")  
+CBCLextALC_plot
+
+#fam hx alc, d, t, n, d 
+CBCLext_ALC2 <- CBCLext[which(CBCLext$HxVar=='ALC' | CBCLext$HxVar=='DRG' | CBCLext$HxVar=='TRB' |
+                                CBCLext$HxVar=='NRV' | CBCLext$HxVar=='DEP'), ]
+
+CBCLext_ALC2$HxVar <- factor(CBCLext_ALC2$HxVar, 
+                             levels=c("ALC", "DRG", "TRB", "NRV", "DEP"), 
+                             labels=c("Alcohol", "Drugs", "Trouble with Law", "Nerves", "Depression"))
+
+CBCLextALC_plot2 <- ggplot(data=CBCLext_ALC2, aes(x=HxLevel, y=lsmean, group=HxVar, color=HxVar))+
+  geom_point(size=3, alpha=1.0, position=position_dodge(.2))+
+  geom_line(size=1.6, alpha=1.0, position=position_dodge(.2), aes(linetype=HxVar))+
+  geom_errorbar(aes(x=HxLevel, ymin=lsmean-SE, ymax=lsmean+SE,group=HxVar, color=HxVar),
+                position=position_dodge(.2), size=.6, width=0)+
+  theme_bw()+
+  scale_x_discrete(limits = c(0, 1, 2, 3), 
+                   labels = c("Neither parent", "Father only", "Mother only", "Both parents"))+
+  scale_y_continuous(limits = c(2,10), 
+                     breaks = seq(2, 10, by=2))+
+  scale_linetype_manual(name="Parental History Type", values=c("solid", "solid", "solid", "solid", "solid"))+
+  theme(legend.position = c(.075, .805), 
+        axis.text.x = element_text(size = 12, color = "black"),
+        axis.text.y = element_text(size = 12, color = "black"),
+        axis.title = element_blank(),
+        axis.ticks = element_blank(),
+        legend.background = element_rect(fill = "transparent"),
+        legend.text = element_text(size = 8, color = "black"),
+        legend.title = element_text(size = 8, color = "black"),
+        title = element_text(size = 12, color = "black"))+
+  scale_color_manual(name="Parental History Type", values=c("#262626", "#C56733", "#3E5E95", "#849324", "#2796A5"))+
+  labs(title = "(b) Parental History of Other Psychiatric Problems with Tier 1 Covariates")
+CBCLextALC_plot2
+
+#ALC covarying other hx
+CBCLext_ALC3 <- CBCLext[which(CBCLext$HxVar=='ALC' | CBCLext$HxVar=='ALC.dt' | 
+                                CBCLext$HxVar=='ALC.nd' | CBCLext$HxVar=='ALC.dtnd' ), ]
+
+CBCLext_ALC3$HxVar <- factor(CBCLext_ALC3$HxVar, 
+                             levels=c("ALC", "ALC.dt", "ALC.nd", "ALC.dtnd"), 
+                             labels=c("Alcohol only", "Alcohol with Drugs & Trouble with law", 
+                                      "Alcohol with Nerves & Depression", "Alcohol with Drugs, Trouble with law, Nerves, Depression"))
+
+CBCLextALC_plot3 <- ggplot(data=CBCLext_ALC3, aes(x=HxLevel, y=lsmean, group=HxVar, color=HxVar))+
+  geom_point(size=3, alpha=1.0, position=position_dodge(.2))+
+  geom_line(size=1.6, alpha=1.0, position=position_dodge(.2), aes(linetype=HxVar))+
+  geom_errorbar(aes(x=HxLevel, ymin=lsmean-SE, ymax=lsmean+SE,group=HxVar, color=HxVar),
+                position=position_dodge(.2), size=.6, width=0)+
+  theme_bw()+
+  scale_x_discrete(limits = c(0, 1, 2, 3), 
+                   labels = c("Neither parent", "Father only", "Mother only", "Both parents"))+
+  scale_y_continuous(limits = c(2,10), 
+                     breaks = seq(2, 10, by=2))+
+  scale_linetype_manual(name="Parental History of Alcohol Problems with Covariates", values=c("solid", "dotted", "dotted", "dotted"))+
+  theme(legend.position = c(.19, .835), 
+        axis.title=element_blank(), 
+        axis.text.x = element_text(size = 12, color = "black"),
+        axis.text.y = element_text(size = 12, color = "black"),
+        axis.ticks = element_blank(),
+        legend.background = element_rect(fill = "transparent"),
+        legend.text = element_text(size = 8, color = "black"),
+        legend.title = element_text(size = 8, color = "black"),
+        title = element_text(size = 12, color = "black"))+
+  scale_color_manual(name="Parental History of Alcohol Problems with Covariates", values=c("#262626", "#07295F", "#E6981B", "#672856"))+
+  labs(title = "(c) Parental History of Alcohol Problems with Tier 1 & 3 Covariates")
+CBCLextALC_plot3
+
+combined <- grid.arrange(CBCLextALC_plot, CBCLextALC_plot2, CBCLextALC_plot3, ncol=1)
+
+ggsave(combined, file="combined.tiff", 
+       units="in", width=9, height=13, dpi=300, compression = 'lzw')
+
